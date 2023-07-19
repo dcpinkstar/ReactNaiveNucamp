@@ -15,10 +15,33 @@ export const fetchComments = createAsyncThunk(
     }
 );
 
+export const postComment = createAsyncThunk(
+    'comments/postComment',
+    async (payload, { dispatch, getState }) => {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                const {comments} = getState();
+                const date = new Date().toISOString();
+
+                const id = getState().comments.commentsArray.length;
+                payload.date = date;
+                payload.id = id;
+
+                resolve(payload);
+
+            })
+        }, 2000);
+
+    });
+
 const commentsSlice = createSlice({
     name: 'comments',
     initialState: { isLoading: true, errMess: null, commentsArray: [] },
-    reducers: {},
+    reducers: {
+        addComment: (state, action) => {
+            state.commentsArray.push(action.payload);
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchComments.pending, (state) => {
@@ -34,8 +57,26 @@ const commentsSlice = createSlice({
                 state.errMess = action.error
                     ? action.error.message
                     : 'Fetch failed';
+            })
+            .addCase(postComment.pending, (state) => {
+
+            })
+            .addCase(postComment.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.errMess = null;
+                state.commentsArray.push(action.payload);
+            })
+            .addCase(postComment.rejected, (state, action) => {
+                state.isLoading = false;
+                state.errMess = action.error
+                ? action.error.message
+                : 'Failed to post comment';
             });
+
     }
 });
 
 export const commentsReducer = commentsSlice.reducer;
+
+export const { addComment } = commentsSlice.actions;
+export default commentsSlice;
