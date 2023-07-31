@@ -230,13 +230,15 @@ const Main = () => {
         dispatch(fetchPromotions());
         dispatch(fetchPartners());
         dispatch(fetchComments());
+        showNetInfo();
     }, [dispatch]);
 
-    useEffect(() => {
-        NetInfo.fetch().then((connectionInfo) => {
+    const showNetInfo = async () => {
+        try {
+            const connectionInfo = await NetInfo.fetch();
             Platform.OS === 'ios'
                 ? Alert.alert(
-                    'Initial Network Connectivity Tyoe:', 
+                    'Initial Network Connectivity Type:', 
                     connectionInfo.type
                 )
                 : ToastAndroid.show(
@@ -244,6 +246,14 @@ const Main = () => {
                         connectionInfo.type, 
                     ToastAndroid.LONG
                 );
+    } catch (error) {
+        console.log('Error fetching network info', error);
+    }
+}
+    
+    useEffect(() => {
+        NetInfo.fetch().then((connectionInfo) => {
+            
         });
 
         const unsubscribeNetInfo = NetInfo.addEventListener(

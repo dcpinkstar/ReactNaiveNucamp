@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as ImagePicker from 'expo-image-picker';
 import { baseUrl } from '../shared/baseUrl';
 import logo from '../assets/images/logo.png';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 const LoginTab = ({ navigation }) => {
     const [username, setUsername] = useState('');
@@ -140,18 +141,59 @@ const RegisterTab = () => {
     const getImageFromCamera = async () => {
         const cameraPermission =
             await ImagePicker.requestCameraPermissionsAsync();
+            console.log("Getting Image");
 
         if (cameraPermission.status === 'granted') {
+            console.log("Getting Image 2");
+
             const capturedImage = await ImagePicker.launchCameraAsync({
                 allowsEditing: true,
                 aspect: [1, 1]
             });
+            console.log("Getting Image 3");
+
             if (capturedImage.assets) {
                 console.log(capturedImage.assets[0]);
-                setImageUrl(capturedImage.assets[0].uri);
+                processImage(capturedImage.assets[0].uri);
             }
         }
     };
+
+    const processImage = async (imgUri) => {
+
+        const processedImage = await manipulateAsync (
+                imgUri,
+                [{ resize: { width: 400 }}],
+                {compress: 1, format: SaveFormat.PNG}
+            );
+            console.log('Processed Image URI:', processedImage);
+
+            setImageUrl(processedImage.uri);
+        
+    };
+
+    const getImageFromGallery = async () => {
+        const mediaLibraryPermissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+                console.log("Library 1");
+    
+            if (mediaLibraryPermissions.status === 'granted') {
+                console.log("Library 2");
+    
+                const capturedImage = await ImagePicker.launchImageLibraryAsync({
+                    allowsEditing: true,
+                    aspect: [1, 1]
+                });
+                console.log("Library 3");
+    
+                if (capturedImage.assets) {
+                    console.log(capturedImage.assets[0]);
+                    processImage(capturedImage.assets[0].uri);
+                }
+            }
+        };
+
+
 
     return (
         <ScrollView>
@@ -163,6 +205,8 @@ const RegisterTab = () => {
                         style={styles.image}
                     />
                     <Button title='Camera' onPress={getImageFromCamera} />
+                    <Button title='Gallery' onPress={getImageFromGallery} />
+
                 </View>
                 <Input
                     placeholder='Username'
@@ -230,7 +274,9 @@ const RegisterTab = () => {
             </View>
         </ScrollView>
     );
-};
+                    };
+
+
 
 const Tab = createBottomTabNavigator();
 
